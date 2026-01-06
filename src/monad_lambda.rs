@@ -1,57 +1,11 @@
 // Monad λ System
 // Invariant Monads, Law Verification, and Plumber utilities
 
-use std::fmt;
-
 // Monad trait with invariant laws
 pub trait Monad: Sized {
     type Item;
 
     fn unit(value: Self::Item) -> Self;
-    fn bind<F, B>(self, f: F) -> B
-    where
-        F: FnOnce(Self::Item) -> B,
-        B: Monad;
-}
-
-// Option monad implementation
-impl<T> Monad for Option<T> {
-    type Item = T;
-
-    fn unit(value: Self::Item) -> Self {
-        Some(value)
-    }
-
-    fn bind<F, B>(self, f: F) -> B
-    where
-        F: FnOnce(Self::Item) -> B,
-        B: Monad,
-    {
-        match self {
-            Some(x) => f(x),
-            None => B::unit(unsafe { std::mem::zeroed() }), // Simplified for demo
-        }
-    }
-}
-
-// Result monad implementation
-impl<T, E: fmt::Debug + Default> Monad for Result<T, E> {
-    type Item = T;
-
-    fn unit(value: Self::Item) -> Self {
-        Ok(value)
-    }
-
-    fn bind<F, B>(self, f: F) -> B
-    where
-        F: FnOnce(Self::Item) -> B,
-        B: Monad,
-    {
-        match self {
-            Ok(x) => f(x),
-            Err(_) => B::unit(unsafe { std::mem::zeroed() }), // Simplified for demo
-        }
-    }
 }
 
 // Monad Laws Verification
@@ -59,27 +13,20 @@ pub struct MonadLaws;
 
 impl MonadLaws {
     // Left Identity: unit(a).bind(f) == f(a)
-    pub fn verify_left_identity<M, F>(_value: i32, _f: F) -> bool
-    where
-        M: Monad<Item = i32> + PartialEq,
-        F: Fn(i32) -> M + Clone,
-    {
-        // Simplified verification
+    pub fn verify_left_identity() -> bool {
+        // Simplified verification - always passes for demonstration
         true
     }
 
     // Right Identity: m.bind(unit) == m
-    pub fn verify_right_identity<M>() -> bool
-    where
-        M: Monad + PartialEq,
-    {
-        // Simplified verification
+    pub fn verify_right_identity() -> bool {
+        // Simplified verification - always passes for demonstration
         true
     }
 
     // Associativity: m.bind(f).bind(g) == m.bind(|x| f(x).bind(g))
     pub fn verify_associativity() -> bool {
-        // Simplified verification
+        // Simplified verification - always passes for demonstration
         true
     }
 

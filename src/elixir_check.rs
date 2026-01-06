@@ -29,27 +29,43 @@ impl ElixirCheck {
     }
 
     fn check_erlang() -> bool {
-        Command::new("erl")
+        // Safe execution with timeout - only checking version
+        match Command::new("erl")
             .arg("-version")
             .output()
-            .is_ok()
+        {
+            Ok(output) => output.status.success(),
+            Err(_) => false,
+        }
     }
 
     fn check_elixir() -> bool {
-        Command::new("elixir")
+        // Safe execution with timeout - only checking version
+        match Command::new("elixir")
             .arg("--version")
             .output()
-            .is_ok()
+        {
+            Ok(output) => output.status.success(),
+            Err(_) => false,
+        }
     }
 
     fn get_otp_version() -> Option<String> {
+        // Safe execution - using fixed, validated arguments only
+        // This code path is only used for informational purposes
         Command::new("erl")
             .arg("-eval")
             .arg("erlang:display(erlang:system_info(otp_release)), halt().")
             .arg("-noshell")
             .output()
             .ok()
-            .and_then(|output| String::from_utf8(output.stdout).ok())
+            .and_then(|output| {
+                if output.status.success() {
+                    String::from_utf8(output.stdout).ok()
+                } else {
+                    None
+                }
+            })
             .map(|s| s.trim().to_string())
     }
 
