@@ -62,8 +62,7 @@ impl SwinTransformer {
             .iter()
             .map(|&pixel| {
                 let normalized = pixel as f64 / 255.0;
-                let shade = (normalized * max_shade) as u8;
-                shade.min(255)
+                (normalized * max_shade) as u8
             })
             .collect()
     }

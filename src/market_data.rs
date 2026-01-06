@@ -37,6 +37,12 @@ pub struct MarketDataFeed {
     quotes: Vec<Quote>,
 }
 
+impl Default for MarketDataFeed {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MarketDataFeed {
     pub fn new() -> Self {
         MarketDataFeed { quotes: Vec::new() }

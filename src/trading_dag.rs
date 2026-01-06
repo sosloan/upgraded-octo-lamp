@@ -7,6 +7,12 @@ pub struct TradingWorkflow {
     dag: OctoTree,
 }
 
+impl Default for TradingWorkflow {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TradingWorkflow {
     pub fn new() -> Self {
         let mut dag = OctoTree::new();

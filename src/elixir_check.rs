@@ -9,6 +9,12 @@ pub struct ElixirCheck {
     pub otp_version: Option<String>,
 }
 
+impl Default for ElixirCheck {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ElixirCheck {
     pub fn new() -> Self {
         let has_erlang = Self::check_erlang();

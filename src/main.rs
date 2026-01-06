@@ -26,6 +26,7 @@ enum Mode {
     Insert,
 }
 
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum MenuItem {
     TradingSystem,

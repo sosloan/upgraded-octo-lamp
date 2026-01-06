@@ -16,6 +16,12 @@ pub struct OctoTree {
     tasks: HashMap<String, Task>,
 }
 
+impl Default for OctoTree {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl OctoTree {
     pub fn new() -> Self {
         OctoTree {
@@ -35,7 +41,7 @@ impl OctoTree {
         for (id, task) in &self.tasks {
             in_degree.insert(id.clone(), task.dependencies.len());
             for dep in &task.dependencies {
-                adj_list.entry(dep.clone()).or_insert_with(Vec::new).push(id.clone());
+                adj_list.entry(dep.clone()).or_default().push(id.clone());
             }
         }
 

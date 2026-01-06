@@ -42,6 +42,12 @@ pub struct CureFoundation {
     total_funding: f64,
 }
 
+impl Default for CureFoundation {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CureFoundation {
     pub fn new() -> Self {
         CureFoundation {

@@ -13,6 +13,12 @@ pub struct WordCountBolt {
     counts: HashMap<String, usize>,
 }
 
+impl Default for WordCountBolt {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl WordCountBolt {
     pub fn new() -> Self {
         WordCountBolt {
@@ -37,6 +43,12 @@ impl Bolt for WordCountBolt {
 // Sum Topology
 pub struct SumBolt {
     total: f64,
+}
+
+impl Default for SumBolt {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl SumBolt {
@@ -64,6 +76,12 @@ impl Bolt for SumBolt {
 pub struct EdisonBolt {
     voltage: f64,
     current: f64,
+}
+
+impl Default for EdisonBolt {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl EdisonBolt {
@@ -98,6 +116,12 @@ pub struct PolymathBolt {
     domains: HashMap<String, Vec<String>>,
 }
 
+impl Default for PolymathBolt {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PolymathBolt {
     pub fn new() -> Self {
         PolymathBolt {
@@ -118,7 +142,7 @@ impl Bolt for PolymathBolt {
             let item = parts[1].trim();
             self.domains
                 .entry(domain.to_string())
-                .or_insert_with(Vec::new)
+                .or_default()
                 .push(item.to_string());
             vec![format!("🌐 Added {} to {}", item, domain)]
         } else {
@@ -131,6 +155,12 @@ impl Bolt for PolymathBolt {
 pub struct KeyBounceBolt {
     last_key: Option<String>,
     bounce_count: usize,
+}
+
+impl Default for KeyBounceBolt {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl KeyBounceBolt {
@@ -189,6 +219,12 @@ pub struct StormTopology {
     pub randomize_keys: RandomizeKeysBolt,
 }
 
+impl Default for StormTopology {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl StormTopology {
     pub fn new() -> Self {
         StormTopology {
@@ -202,8 +238,6 @@ impl StormTopology {
     }
 
     pub fn display(&self) -> String {
-        format!(
-            "Storm Topologies:\n  • Word Count\n  • Sum\n  • Edison ⚡\n  • Polymath 🌐\n  • Key Bounce\n  • Randomize Keys 🎹"
-        )
+        "Storm Topologies:\n  • Word Count\n  • Sum\n  • Edison ⚡\n  • Polymath 🌐\n  • Key Bounce\n  • Randomize Keys 🎹".to_string()
     }
 }
