@@ -1,7 +1,10 @@
 # Valency Checker Test Suite
+#
+# Note: This file follows a simplified structure for demonstration.
+# In a production Mix project, this would be in test/valency_checker_test.exs
 # 
 # Run with: elixir valency_checker_test.exs
-# Or with mix: mix test valency_checker_test.exs
+# Or with mix: mix test test/valency_checker_test.exs
 
 Code.require_file("valency_checker.ex", __DIR__)
 

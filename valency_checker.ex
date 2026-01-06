@@ -182,13 +182,16 @@ defmodule ValencyChecker do
   ## Examples
 
       iex> ValencyChecker.check_batch(["eating", "reading", "running"])
-      [ok: %{...}, ok: %{...}, ok: %{...}]
+      [{:ok, %{...}}, {:ok, %{...}}, {:ok, %{...}}]
   """
   @spec check_batch(list(word())) :: list({:ok, analysis_result()} | {:error, atom()})
   def check_batch(words) when is_list(words) do
     words
     |> Task.async_stream(&check/1, max_concurrency: System.schedulers_online())
-    |> Enum.map(fn {:ok, result} -> result end)
+    |> Enum.map(fn 
+      {:ok, result} -> result
+      {:exit, reason} -> {:error, reason}
+    end)
   end
 
   @doc """
