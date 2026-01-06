@@ -27,10 +27,9 @@ defmodule ValencyChecker do
   @type valency :: non_neg_integer()
   @type semantic_role :: :agent | :patient | :recipient | :instrument | :location | :time | :manner
   @type valency_pattern :: %{
-          verb: word(),
           valency: valency(),
-          required_roles: list(semantic_role()),
-          optional_roles: list(semantic_role())
+          required: list(semantic_role()),
+          optional: list(semantic_role())
         }
 
   @type analysis_result :: %{
@@ -372,8 +371,11 @@ defmodule ValencyChecker do
     # Simple heuristic: find the first verb in the sentence
     Enum.reduce_while(words, {:error, :no_verb_found}, fn word, _acc ->
       case check(word) do
-        {:ok, analysis} -> {:halt, {:ok, analysis.stem, %{required: analysis.required_roles, optional: analysis.optional_roles}}}
-        {:error, _} -> {:cont, {:error, :no_verb_found}}
+        {:ok, analysis} -> 
+          pattern = %{required: analysis.required_roles, optional: analysis.optional_roles}
+          {:halt, {:ok, analysis.stem, pattern}}
+        {:error, _} -> 
+          {:cont, {:error, :no_verb_found}}
       end
     end)
   end
