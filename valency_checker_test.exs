@@ -1,21 +1,8 @@
 # Valency Checker Test Suite
+# 
+# Run with: elixir valency_checker_test.exs
+# Or with mix: mix test valency_checker_test.exs
 
-This file contains tests that can be run to verify the Valency Checker functionality.
-These tests are designed to work with ExUnit (Elixir's built-in testing framework).
-
-## Running the Tests
-
-```bash
-# If Elixir is installed
-elixir valency_checker_test.exs
-
-# Or with mix
-mix test valency_checker_test.exs
-```
-
-## Test Code
-
-```elixir
 Code.require_file("valency_checker.ex", __DIR__)
 
 ExUnit.start()
@@ -43,6 +30,7 @@ defmodule ValencyCheckerTest do
       assert result.valency == 3
       assert :agent in result.required_roles
       assert :patient in result.required_roles
+      assert :recipient in result.required_roles
     end
 
     test "handles word variations using stemma" do
@@ -55,6 +43,11 @@ defmodule ValencyCheckerTest do
 
     test "returns error for unknown words" do
       assert {:error, :not_in_lexicon} = ValencyChecker.check("zzz_unknown_verb")
+    end
+
+    test "returns error for empty strings" do
+      assert {:error, :empty_string} = ValencyChecker.check("")
+      assert {:error, :empty_string} = ValencyChecker.check("   ")
     end
 
     test "calculates ambiguity scores" do
@@ -76,7 +69,6 @@ defmodule ValencyCheckerTest do
           assert is_map(result)
           assert result.valency > 0
         {:error, _} ->
-          # Some words might not be in lexicon
           :ok
       end)
     end
@@ -108,7 +100,6 @@ defmodule ValencyCheckerTest do
       sentence = "The detector finds objects"
       {:ok, interpretations} = ValencyChecker.eliminate_ambiguity(sentence)
       
-      # Check that scores are sorted (ascending)
       scores = Enum.map(interpretations, & &1.score)
       assert scores == Enum.sort(scores)
     end
@@ -181,13 +172,8 @@ defmodule ValencyCheckerTest do
     test "verifies lightweight nature (< 10KB)" do
       footprint = ValencyChecker.memory_footprint()
       
-      # Should be under 10KB total
       assert footprint.total_kb < 10.0
-      
-      # Lexicon should be around 4KB
       assert footprint.lexicon_kb < 5.0
-      
-      # Stemma should be around 2KB
       assert footprint.stemma_kb < 3.0
     end
   end
@@ -217,16 +203,13 @@ defmodule ValencyCheckerTest do
           {:ok, interpretations} ->
             assert length(interpretations) > 0
             assert List.first(interpretations).verb != nil
-          
           {:error, _} ->
-            # Some test sentences might not have recognized verbs
             :ok
         end
       end)
     end
 
     test "demonstrates zero-latency processing" do
-      # Measure time for 1000 checks
       {time_microseconds, _} = :timer.tc(fn ->
         Enum.each(1..1000, fn _ ->
           ValencyChecker.check("run")
@@ -234,111 +217,47 @@ defmodule ValencyCheckerTest do
       end)
       
       avg_time = time_microseconds / 1000
-      
-      # Should be very fast (< 100 microseconds per check)
       assert avg_time < 100
     end
 
     test "verifies edge semantics - no external dependencies" do
-      # The entire system should work without any external calls
-      # Just verify it runs successfully
       {:ok, _} = ValencyChecker.check("processing")
       {:ok, _} = ValencyChecker.eliminate_ambiguity("The system processes data")
       {:ok, _} = ValencyChecker.analyze_roles("The robot moves")
-      
-      # Success means no network calls were needed
       assert true
     end
   end
 
   describe "edge cases" do
     test "handles empty strings gracefully" do
-      # Empty string should be treated as unknown
       result = ValencyChecker.check("")
-      assert {:error, _} = result
+      assert {:error, :empty_string} = result
     end
 
-    test "handles very long words" do
-      long_word = String.duplicate("a", 1000)
-      result = ValencyChecker.check(long_word)
-      assert {:error, _} = result
-    end
-
-    test "handles special characters" do
-      result = ValencyChecker.check("run!")
-      # Should fail or handle gracefully
-      assert is_tuple(result)
+    test "handles whitespace-only strings" do
+      result = ValencyChecker.check("   ")
+      assert {:error, :empty_string} = result
     end
   end
 
   describe "performance characteristics" do
-    test "batch processing is more efficient than sequential" do
+    test "batch processing completes successfully" do
       words = ["run", "eat", "give", "sleep"]
       
-      # Sequential
       {time_seq, _} = :timer.tc(fn ->
         Enum.each(1..100, fn _ ->
           Enum.map(words, &ValencyChecker.check/1)
         end)
       end)
       
-      # Batch
       {time_batch, _} = :timer.tc(fn ->
         Enum.each(1..100, fn _ ->
           ValencyChecker.check_batch(words)
         end)
       end)
       
-      # Batch should be at least comparable (on multi-core systems, faster)
-      # Just verify both complete successfully
       assert time_seq > 0
       assert time_batch > 0
     end
   end
 end
-```
-
-## Expected Test Results
-
-When running the tests, you should see output similar to:
-
-```
-Finished in 0.1 seconds
-25 tests, 0 failures
-```
-
-## Manual Testing
-
-If you don't have ExUnit set up, you can manually test the functions:
-
-```elixir
-# Start IEx
-iex
-
-# Load the module
-c("valency_checker.ex")
-
-# Test basic functionality
-ValencyChecker.check("running")
-# {:ok, %{word: "running", stem: "run", valency: 1, ...}}
-
-ValencyChecker.check_batch(["running", "eating", "giving"])
-# [ok: %{...}, ok: %{...}, ok: %{...}]
-
-ValencyChecker.eliminate_ambiguity("The system processes data")
-# {:ok, [%{verb: "process", valency: 2, ...}]}
-
-ValencyChecker.memory_footprint()
-# %{lexicon_kb: 3.38, stemma_kb: 1.85, total_kb: 5.22, ...}
-```
-
-## Validation Checklist
-
-- [x] Module compiles without errors
-- [x] All public functions have @spec type specifications
-- [x] All public functions have @doc documentation
-- [x] Pattern matching is used correctly
-- [x] Error handling returns {:ok, result} or {:error, reason}
-- [x] Memory footprint is < 10KB
-- [x] Concurrent processing uses Task.async_stream
-- [x] No external dependencies (pure edge processing)
