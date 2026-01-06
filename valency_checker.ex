@@ -25,7 +25,7 @@ defmodule ValencyChecker do
   @type word :: String.t()
   @type stem :: String.t()
   @type valency :: non_neg_integer()
-  @type semantic_role :: :agent | :patient | :instrument | :location | :time | :manner
+  @type semantic_role :: :agent | :patient | :recipient | :instrument | :location | :time | :manner
   @type valency_pattern :: %{
           verb: word(),
           valency: valency(),
@@ -147,6 +147,15 @@ defmodule ValencyChecker do
   """
   @spec check(word()) :: {:ok, analysis_result()} | {:error, atom()}
   def check(word) when is_binary(word) do
+    # Validate input
+    if String.trim(word) == "" do
+      {:error, :empty_string}
+    else
+      check_valid_word(word)
+    end
+  end
+
+  defp check_valid_word(word) do
     normalized = String.downcase(word)
     
     with {:ok, stem} <- get_stem(normalized),
