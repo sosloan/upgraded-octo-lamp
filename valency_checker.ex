@@ -37,7 +37,8 @@ defmodule ValencyChecker do
           word: word(),
           stem: stem(),
           valency: valency(),
-          roles: list(semantic_role()),
+          required_roles: list(semantic_role()),
+          optional_roles: list(semantic_role()),
           ambiguity_score: float(),
           interpretation: String.t()
         }
