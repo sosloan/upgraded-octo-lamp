@@ -411,7 +411,7 @@ fn test_plumber_error_handling() {
     // Test Plumber with None values in pipeline
     let result = Plumber::new(10)
         .pipe(|x| Some(x * 2))
-        .pipe(|_x: i32| None::<i32>) // Inject failure with explicit type
+        .pipe(|_x| -> Option<i32> { None }) // Inject failure with explicit return type
         .pipe(|x| Some(x * 3)) // This should not execute
         .extract();
     
@@ -439,8 +439,13 @@ fn test_concurrent_storm_processing() {
     // Test Storm topologies can handle rapid sequential processing
     let mut word_count = WordCountBolt::new();
     
-    for i in 0..100 {
-        word_count.execute(&format!("word{} test data", i));
+    // Pre-allocate test strings
+    let test_strings: Vec<String> = (0..100)
+        .map(|i| format!("word{} test data", i))
+        .collect();
+    
+    for text in &test_strings {
+        word_count.execute(text);
     }
     
     // Verify all words were counted
