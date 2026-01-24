@@ -76,3 +76,73 @@ pub fn demonstrate_monad_system() -> String {
         laws, plumber_demo, plumber_demo
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_monad_laws_verify_left_identity() {
+        assert!(MonadLaws::verify_left_identity());
+    }
+
+    #[test]
+    fn test_monad_laws_verify_right_identity() {
+        assert!(MonadLaws::verify_right_identity());
+    }
+
+    #[test]
+    fn test_monad_laws_verify_associativity() {
+        assert!(MonadLaws::verify_associativity());
+    }
+
+    #[test]
+    fn test_monad_laws_verify_all() {
+        let result = MonadLaws::verify_all();
+        assert!(result.contains("Left Identity"));
+        assert!(result.contains("Right Identity"));
+        assert!(result.contains("Associativity"));
+        assert!(result.contains("Pass"));
+    }
+
+    #[test]
+    fn test_plumber_new() {
+        let plumber = Plumber::new(42);
+        assert_eq!(plumber.extract(), Some(42));
+    }
+
+    #[test]
+    fn test_plumber_pipe() {
+        let result = Plumber::new(10)
+            .pipe(|x| Some(x * 2))
+            .extract();
+        assert_eq!(result, Some(20));
+    }
+
+    #[test]
+    fn test_plumber_pipe_chain() {
+        let result = Plumber::new(5)
+            .pipe(|x| Some(x * 2))
+            .pipe(|x| Some(x + 10))
+            .pipe(|x| Some(x / 2))
+            .extract();
+        assert_eq!(result, Some(10));
+    }
+
+    #[test]
+    fn test_plumber_pipe_none() {
+        let result = Plumber::new(5)
+            .pipe(|_| None::<i32>)
+            .pipe(|x| Some(x * 2))
+            .extract();
+        assert_eq!(result, None);
+    }
+
+    #[test]
+    fn test_demonstrate_monad_system() {
+        let demo = demonstrate_monad_system();
+        assert!(demo.contains("Monad Laws"));
+        assert!(demo.contains("Plumber Demo"));
+        assert!(demo.contains("94"));
+    }
+}

@@ -64,3 +64,49 @@ impl TradingWorkflow {
         self.dag.display()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_trading_workflow_new() {
+        let workflow = TradingWorkflow::new();
+        assert!(workflow.get_execution_order().is_ok());
+    }
+
+    #[test]
+    fn test_trading_workflow_execution_order() {
+        let workflow = TradingWorkflow::new();
+        let order = workflow.get_execution_order().unwrap();
+        
+        assert_eq!(order.len(), 5);
+        assert_eq!(order[0], "fetch_data");
+        assert_eq!(order[4], "execute_trades");
+    }
+
+    #[test]
+    fn test_trading_workflow_correct_sequence() {
+        let workflow = TradingWorkflow::new();
+        let order = workflow.get_execution_order().unwrap();
+        
+        // Verify the execution order is correct
+        let fetch_idx = order.iter().position(|x| x == "fetch_data").unwrap();
+        let calc_idx = order.iter().position(|x| x == "calculate_indicators").unwrap();
+        let signal_idx = order.iter().position(|x| x == "generate_signals").unwrap();
+        let risk_idx = order.iter().position(|x| x == "risk_check").unwrap();
+        let exec_idx = order.iter().position(|x| x == "execute_trades").unwrap();
+        
+        assert!(fetch_idx < calc_idx);
+        assert!(calc_idx < signal_idx);
+        assert!(signal_idx < risk_idx);
+        assert!(risk_idx < exec_idx);
+    }
+
+    #[test]
+    fn test_trading_workflow_display() {
+        let workflow = TradingWorkflow::new();
+        let display = workflow.display();
+        assert!(display.contains("5 tasks"));
+    }
+}

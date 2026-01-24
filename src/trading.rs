@@ -97,3 +97,108 @@ impl Order {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_order_new() {
+        let order = Order::new("TEST", OrderSide::Buy, OrderType::Market, 100.0);
+        assert_eq!(order.symbol, "TEST");
+        assert_eq!(order.quantity, 100.0);
+        assert!(!order.filled);
+    }
+
+    #[test]
+    fn test_order_execute_market_buy() {
+        let mut order = Order::new("TEST", OrderSide::Buy, OrderType::Market, 100.0);
+        let position = order.execute(50.0);
+        assert!(position.is_some());
+        assert!(order.filled);
+        let pos = position.unwrap();
+        assert_eq!(pos.quantity, 100.0);
+        assert_eq!(pos.avg_price, 50.0);
+    }
+
+    #[test]
+    fn test_order_execute_market_sell() {
+        let mut order = Order::new("TEST", OrderSide::Sell, OrderType::Market, 100.0);
+        let position = order.execute(50.0);
+        assert!(position.is_some());
+        let pos = position.unwrap();
+        assert_eq!(pos.quantity, -100.0);
+    }
+
+    #[test]
+    fn test_order_execute_limit_buy_fills() {
+        let mut order = Order::new("TEST", OrderSide::Buy, OrderType::Limit(51.0), 100.0);
+        let position = order.execute(50.0);
+        assert!(position.is_some());
+        assert!(order.filled);
+    }
+
+    #[test]
+    fn test_order_execute_limit_buy_no_fill() {
+        let mut order = Order::new("TEST", OrderSide::Buy, OrderType::Limit(49.0), 100.0);
+        let position = order.execute(50.0);
+        assert!(position.is_none());
+        assert!(!order.filled);
+    }
+
+    #[test]
+    fn test_order_execute_limit_sell_fills() {
+        let mut order = Order::new("TEST", OrderSide::Sell, OrderType::Limit(49.0), 100.0);
+        let position = order.execute(50.0);
+        assert!(position.is_some());
+        assert!(order.filled);
+    }
+
+    #[test]
+    fn test_order_execute_limit_sell_no_fill() {
+        let mut order = Order::new("TEST", OrderSide::Sell, OrderType::Limit(51.0), 100.0);
+        let position = order.execute(50.0);
+        assert!(position.is_none());
+        assert!(!order.filled);
+    }
+
+    #[test]
+    fn test_order_execute_stop_buy_triggers() {
+        let mut order = Order::new("TEST", OrderSide::Buy, OrderType::Stop(49.0), 100.0);
+        let position = order.execute(50.0);
+        assert!(position.is_some());
+        assert!(order.filled);
+    }
+
+    #[test]
+    fn test_order_execute_stop_buy_no_trigger() {
+        let mut order = Order::new("TEST", OrderSide::Buy, OrderType::Stop(51.0), 100.0);
+        let position = order.execute(50.0);
+        assert!(position.is_none());
+        assert!(!order.filled);
+    }
+
+    #[test]
+    fn test_order_execute_stop_sell_triggers() {
+        let mut order = Order::new("TEST", OrderSide::Sell, OrderType::Stop(51.0), 100.0);
+        let position = order.execute(50.0);
+        assert!(position.is_some());
+        assert!(order.filled);
+    }
+
+    #[test]
+    fn test_order_execute_stop_sell_no_trigger() {
+        let mut order = Order::new("TEST", OrderSide::Sell, OrderType::Stop(49.0), 100.0);
+        let position = order.execute(50.0);
+        assert!(position.is_none());
+        assert!(!order.filled);
+    }
+
+    #[test]
+    fn test_order_already_filled() {
+        let mut order = Order::new("TEST", OrderSide::Buy, OrderType::Market, 100.0);
+        let _ = order.execute(50.0);
+        let position = order.execute(50.0);
+        assert!(position.is_none());
+    }
+}

@@ -129,4 +129,110 @@ mod tests {
         let result = tree.topological_sort().unwrap();
         assert_eq!(result, vec!["A", "B"]);
     }
+
+    #[test]
+    fn test_octo_tree_new() {
+        let tree = OctoTree::new();
+        assert_eq!(tree.tasks.len(), 0);
+    }
+
+    #[test]
+    fn test_octo_tree_add_task() {
+        let mut tree = OctoTree::new();
+        tree.add_task(Task {
+            id: "A".to_string(),
+            name: "Task A".to_string(),
+            duration: 5,
+            dependencies: vec![],
+        });
+        assert_eq!(tree.tasks.len(), 1);
+    }
+
+    #[test]
+    fn test_topological_sort_multiple_tasks() {
+        let mut tree = OctoTree::new();
+        tree.add_task(Task {
+            id: "A".to_string(),
+            name: "Task A".to_string(),
+            duration: 5,
+            dependencies: vec![],
+        });
+        tree.add_task(Task {
+            id: "B".to_string(),
+            name: "Task B".to_string(),
+            duration: 3,
+            dependencies: vec!["A".to_string()],
+        });
+        tree.add_task(Task {
+            id: "C".to_string(),
+            name: "Task C".to_string(),
+            duration: 2,
+            dependencies: vec!["A".to_string()],
+        });
+        tree.add_task(Task {
+            id: "D".to_string(),
+            name: "Task D".to_string(),
+            duration: 1,
+            dependencies: vec!["B".to_string(), "C".to_string()],
+        });
+
+        let result = tree.topological_sort().unwrap();
+        assert_eq!(result.len(), 4);
+        assert_eq!(result[0], "A");
+        assert_eq!(result[3], "D");
+    }
+
+    #[test]
+    fn test_topological_sort_cycle_detection() {
+        let mut tree = OctoTree::new();
+        tree.add_task(Task {
+            id: "A".to_string(),
+            name: "Task A".to_string(),
+            duration: 5,
+            dependencies: vec!["B".to_string()],
+        });
+        tree.add_task(Task {
+            id: "B".to_string(),
+            name: "Task B".to_string(),
+            duration: 3,
+            dependencies: vec!["A".to_string()],
+        });
+
+        let result = tree.topological_sort();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Cycle"));
+    }
+
+    #[test]
+    fn test_critical_path() {
+        let mut tree = OctoTree::new();
+        tree.add_task(Task {
+            id: "A".to_string(),
+            name: "Task A".to_string(),
+            duration: 5,
+            dependencies: vec![],
+        });
+        tree.add_task(Task {
+            id: "B".to_string(),
+            name: "Task B".to_string(),
+            duration: 3,
+            dependencies: vec!["A".to_string()],
+        });
+
+        let result = tree.critical_path();
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_display() {
+        let mut tree = OctoTree::new();
+        tree.add_task(Task {
+            id: "A".to_string(),
+            name: "Task A".to_string(),
+            duration: 5,
+            dependencies: vec![],
+        });
+        let display = tree.display();
+        assert!(display.contains("1 tasks"));
+    }
 }

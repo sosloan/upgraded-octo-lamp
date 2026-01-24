@@ -241,3 +241,166 @@ impl StormTopology {
         "Storm Topologies:\n  • Word Count\n  • Sum\n  • Edison ⚡\n  • Polymath 🌐\n  • Key Bounce\n  • Randomize Keys 🎹".to_string()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_word_count_bolt_new() {
+        let bolt = WordCountBolt::new();
+        assert_eq!(bolt.get_counts().len(), 0);
+    }
+
+    #[test]
+    fn test_word_count_bolt_execute() {
+        let mut bolt = WordCountBolt::new();
+        bolt.execute("hello world");
+        assert_eq!(*bolt.get_counts().get("hello").unwrap(), 1);
+        assert_eq!(*bolt.get_counts().get("world").unwrap(), 1);
+    }
+
+    #[test]
+    fn test_word_count_bolt_multiple_executes() {
+        let mut bolt = WordCountBolt::new();
+        bolt.execute("hello world");
+        bolt.execute("hello again");
+        assert_eq!(*bolt.get_counts().get("hello").unwrap(), 2);
+        assert_eq!(*bolt.get_counts().get("world").unwrap(), 1);
+        assert_eq!(*bolt.get_counts().get("again").unwrap(), 1);
+    }
+
+    #[test]
+    fn test_sum_bolt_new() {
+        let bolt = SumBolt::new();
+        assert_eq!(bolt.get_total(), 0.0);
+    }
+
+    #[test]
+    fn test_sum_bolt_execute() {
+        let mut bolt = SumBolt::new();
+        bolt.execute("10.5");
+        assert_eq!(bolt.get_total(), 10.5);
+    }
+
+    #[test]
+    fn test_sum_bolt_multiple_executes() {
+        let mut bolt = SumBolt::new();
+        bolt.execute("10.5");
+        bolt.execute("20.3");
+        bolt.execute("5.2");
+        assert!((bolt.get_total() - 36.0).abs() < 0.01);
+    }
+
+    #[test]
+    fn test_sum_bolt_invalid_input() {
+        let mut bolt = SumBolt::new();
+        let result = bolt.execute("not a number");
+        assert_eq!(result[0], "Invalid number");
+    }
+
+    #[test]
+    fn test_edison_bolt_new() {
+        let bolt = EdisonBolt::new();
+        assert_eq!(bolt.power(), 0.0);
+    }
+
+    #[test]
+    fn test_edison_bolt_execute() {
+        let mut bolt = EdisonBolt::new();
+        bolt.execute("120,10");
+        assert_eq!(bolt.power(), 1200.0);
+    }
+
+    #[test]
+    fn test_edison_bolt_invalid_input() {
+        let mut bolt = EdisonBolt::new();
+        let result = bolt.execute("invalid");
+        assert_eq!(result[0], "Invalid input");
+    }
+
+    #[test]
+    fn test_polymath_bolt_new() {
+        let bolt = PolymathBolt::new();
+        assert_eq!(bolt.domains.len(), 0);
+    }
+
+    #[test]
+    fn test_polymath_bolt_execute() {
+        let mut bolt = PolymathBolt::new();
+        bolt.execute("science: physics");
+        assert!(bolt.domains.contains_key("science"));
+    }
+
+    #[test]
+    fn test_polymath_bolt_multiple_domains() {
+        let mut bolt = PolymathBolt::new();
+        bolt.execute("science: physics");
+        bolt.execute("art: painting");
+        bolt.execute("science: chemistry");
+        assert_eq!(bolt.domains.len(), 2);
+        assert_eq!(bolt.domains.get("science").unwrap().len(), 2);
+    }
+
+    #[test]
+    fn test_key_bounce_bolt_new() {
+        let bolt = KeyBounceBolt::new();
+        assert_eq!(bolt.bounce_count, 0);
+        assert!(bolt.last_key.is_none());
+    }
+
+    #[test]
+    fn test_key_bounce_bolt_first_key() {
+        let mut bolt = KeyBounceBolt::new();
+        let result = bolt.execute("a");
+        assert!(result[0].contains("accepted"));
+    }
+
+    #[test]
+    fn test_key_bounce_bolt_bounce_filter() {
+        let mut bolt = KeyBounceBolt::new();
+        bolt.execute("a");
+        let result = bolt.execute("a");
+        assert!(result[0].contains("Bounce filtered"));
+    }
+
+    #[test]
+    fn test_key_bounce_bolt_different_key() {
+        let mut bolt = KeyBounceBolt::new();
+        bolt.execute("a");
+        let result = bolt.execute("b");
+        assert!(result[0].contains("accepted"));
+    }
+
+    #[test]
+    fn test_randomize_keys_bolt_execute() {
+        let mut bolt = RandomizeKeysBolt::new(42);
+        let result = bolt.execute("test");
+        assert!(result[0].contains("Random"));
+    }
+
+    #[test]
+    fn test_randomize_keys_bolt_deterministic() {
+        let mut bolt1 = RandomizeKeysBolt::new(42);
+        let mut bolt2 = RandomizeKeysBolt::new(42);
+        let result1 = bolt1.execute("test");
+        let result2 = bolt2.execute("test");
+        assert_eq!(result1[0], result2[0]);
+    }
+
+    #[test]
+    fn test_storm_topology_new() {
+        let topology = StormTopology::new();
+        assert_eq!(topology.word_count.get_counts().len(), 0);
+        assert_eq!(topology.sum.get_total(), 0.0);
+    }
+
+    #[test]
+    fn test_storm_topology_display() {
+        let topology = StormTopology::new();
+        let display = topology.display();
+        assert!(display.contains("Word Count"));
+        assert!(display.contains("Edison"));
+        assert!(display.contains("Polymath"));
+    }
+}

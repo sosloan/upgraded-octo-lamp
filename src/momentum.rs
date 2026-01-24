@@ -63,3 +63,66 @@ fn calculate_ema(prices: &[f64], period: usize) -> f64 {
     }
     ema
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_momentum_indicator_new() {
+        let indicator = MomentumIndicator::new("RSI", 65.5);
+        assert_eq!(indicator.name, "RSI");
+        assert_eq!(indicator.value, 65.5);
+    }
+
+    #[test]
+    fn test_calculate_rsi_insufficient_data() {
+        let prices = vec![100.0, 101.0];
+        let rsi = calculate_rsi(&prices, 14);
+        assert_eq!(rsi, 50.0);
+    }
+
+    #[test]
+    fn test_calculate_rsi_all_gains() {
+        let prices = vec![100.0, 101.0, 102.0, 103.0, 104.0, 105.0, 106.0, 107.0, 108.0, 109.0, 110.0, 111.0, 112.0, 113.0, 114.0];
+        let rsi = calculate_rsi(&prices, 14);
+        assert_eq!(rsi, 100.0);
+    }
+
+    #[test]
+    fn test_calculate_rsi_mixed() {
+        let prices = vec![100.0, 101.0, 100.5, 101.5, 100.8, 102.0, 101.0, 102.5, 101.5, 103.0, 102.0, 103.5, 102.5, 104.0, 103.0];
+        let rsi = calculate_rsi(&prices, 14);
+        assert!(rsi > 0.0 && rsi < 100.0);
+    }
+
+    #[test]
+    fn test_calculate_macd() {
+        let prices = vec![100.0, 101.0, 102.0, 103.0, 104.0, 105.0, 106.0, 107.0, 108.0, 109.0, 110.0, 111.0, 112.0];
+        let (macd_line, signal_line, histogram) = calculate_macd(&prices);
+        assert!(macd_line > 0.0);
+        assert_eq!(signal_line, macd_line * 0.9);
+        assert_eq!(histogram, macd_line - signal_line);
+    }
+
+    #[test]
+    fn test_calculate_ema_empty() {
+        let prices: Vec<f64> = vec![];
+        let ema = calculate_ema(&prices, 12);
+        assert_eq!(ema, 0.0);
+    }
+
+    #[test]
+    fn test_calculate_ema_single_value() {
+        let prices = vec![100.0];
+        let ema = calculate_ema(&prices, 12);
+        assert_eq!(ema, 100.0);
+    }
+
+    #[test]
+    fn test_calculate_ema_multiple_values() {
+        let prices = vec![100.0, 102.0, 104.0, 106.0];
+        let ema = calculate_ema(&prices, 3);
+        assert!(ema > 100.0 && ema <= 106.0);
+    }
+}
