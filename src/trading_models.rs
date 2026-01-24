@@ -49,3 +49,58 @@ pub fn get_biotech_universe() -> Vec<BiotechSymbol> {
         BiotechSymbol::new("AMGN", "Amgen Inc", "Biotechnology", 138_000_000_000.0),
     ]
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_biotech_symbol_new() {
+        let symbol = BiotechSymbol::new("TEST", "Test Company", "Biotech", 1_000_000.0);
+        assert_eq!(symbol.ticker, "TEST");
+        assert_eq!(symbol.company_name, "Test Company");
+        assert_eq!(symbol.sector, "Biotech");
+        assert_eq!(symbol.market_cap, 1_000_000.0);
+    }
+
+    #[test]
+    fn test_position_unrealized_pnl() {
+        let position = Position {
+            symbol: "TEST".to_string(),
+            quantity: 100.0,
+            avg_price: 50.0,
+            current_price: 60.0,
+        };
+        assert_eq!(position.unrealized_pnl(), 1000.0); // (60 - 50) * 100
+    }
+
+    #[test]
+    fn test_position_unrealized_pnl_negative() {
+        let position = Position {
+            symbol: "TEST".to_string(),
+            quantity: 100.0,
+            avg_price: 60.0,
+            current_price: 50.0,
+        };
+        assert_eq!(position.unrealized_pnl(), -1000.0); // (50 - 60) * 100
+    }
+
+    #[test]
+    fn test_position_market_value() {
+        let position = Position {
+            symbol: "TEST".to_string(),
+            quantity: 100.0,
+            avg_price: 50.0,
+            current_price: 60.0,
+        };
+        assert_eq!(position.market_value(), 6000.0); // 60 * 100
+    }
+
+    #[test]
+    fn test_get_biotech_universe() {
+        let universe = get_biotech_universe();
+        assert_eq!(universe.len(), 5);
+        assert_eq!(universe[0].ticker, "BIIB");
+        assert_eq!(universe[4].ticker, "AMGN");
+    }
+}

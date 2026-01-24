@@ -101,3 +101,67 @@ pub fn initialize_cure_foundation() -> CureFoundation {
 
     foundation
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_cure_project_new() {
+        let project = CureProject::new("Test Project", "Test Disease", 1_000_000.0);
+        assert_eq!(project.name, "Test Project");
+        assert_eq!(project.disease_target, "Test Disease");
+        assert_eq!(project.funding, 1_000_000.0);
+        assert!(matches!(project.status, ProjectStatus::Planning));
+    }
+
+    #[test]
+    fn test_cure_project_advance_status() {
+        let mut project = CureProject::new("Test", "Disease", 100.0);
+        assert!(matches!(project.status, ProjectStatus::Planning));
+        
+        project.advance_status();
+        assert!(matches!(project.status, ProjectStatus::Active));
+        
+        project.advance_status();
+        assert!(matches!(project.status, ProjectStatus::Clinical));
+        
+        project.advance_status();
+        assert!(matches!(project.status, ProjectStatus::Approved));
+        
+        project.advance_status();
+        assert!(matches!(project.status, ProjectStatus::Approved));
+    }
+
+    #[test]
+    fn test_cure_foundation_new() {
+        let foundation = CureFoundation::new();
+        assert_eq!(foundation.get_projects().len(), 0);
+        assert_eq!(foundation.total_funding(), 0.0);
+    }
+
+    #[test]
+    fn test_cure_foundation_add_project() {
+        let mut foundation = CureFoundation::new();
+        let project = CureProject::new("Test", "Disease", 1_000_000.0);
+        foundation.add_project(project);
+        
+        assert_eq!(foundation.get_projects().len(), 1);
+        assert_eq!(foundation.total_funding(), 1_000_000.0);
+    }
+
+    #[test]
+    fn test_cure_foundation_display() {
+        let foundation = initialize_cure_foundation();
+        let display = foundation.display();
+        assert!(display.contains("CURE Foundation"));
+        assert!(display.contains("3 projects"));
+    }
+
+    #[test]
+    fn test_initialize_cure_foundation() {
+        let foundation = initialize_cure_foundation();
+        assert_eq!(foundation.get_projects().len(), 3);
+        assert_eq!(foundation.total_funding(), 18_000_000.0);
+    }
+}

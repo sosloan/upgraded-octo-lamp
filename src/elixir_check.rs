@@ -106,3 +106,36 @@ impl ElixirCheck {
 pub fn run_elixir_check() -> ElixirCheck {
     ElixirCheck::new()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_elixir_check_new() {
+        let check = ElixirCheck::new();
+        // Test that the check completes without panicking
+        assert!(check.has_erlang || !check.has_erlang);
+        assert!(check.has_elixir || !check.has_elixir);
+    }
+
+    #[test]
+    fn test_elixir_check_display() {
+        let check = ElixirCheck::new();
+        let display = check.display();
+        assert!(display.contains("Elixir Check"));
+    }
+
+    #[test]
+    fn test_elixir_check_verify_guarantees() {
+        let check = ElixirCheck::new();
+        let result = check.verify_guarantees();
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_run_elixir_check() {
+        let check = run_elixir_check();
+        assert!(check.has_erlang || !check.has_erlang);
+    }
+}

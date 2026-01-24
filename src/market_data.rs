@@ -60,3 +60,89 @@ impl MarketDataFeed {
         &self.quotes
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_quote_spread() {
+        let quote = Quote {
+            symbol: "TEST".to_string(),
+            bid: 100.0,
+            ask: 101.0,
+            last: 100.5,
+            volume: 1000,
+            timestamp: 0,
+        };
+        assert_eq!(quote.spread(), 1.0);
+    }
+
+    #[test]
+    fn test_quote_mid_price() {
+        let quote = Quote {
+            symbol: "TEST".to_string(),
+            bid: 100.0,
+            ask: 102.0,
+            last: 101.0,
+            volume: 1000,
+            timestamp: 0,
+        };
+        assert_eq!(quote.mid_price(), 101.0);
+    }
+
+    #[test]
+    fn test_market_data_feed_new() {
+        let feed = MarketDataFeed::new();
+        assert_eq!(feed.get_all_quotes().len(), 0);
+    }
+
+    #[test]
+    fn test_market_data_feed_add_quote() {
+        let mut feed = MarketDataFeed::new();
+        let quote = Quote {
+            symbol: "TEST".to_string(),
+            bid: 100.0,
+            ask: 101.0,
+            last: 100.5,
+            volume: 1000,
+            timestamp: 1,
+        };
+        feed.add_quote(quote);
+        assert_eq!(feed.get_all_quotes().len(), 1);
+    }
+
+    #[test]
+    fn test_market_data_feed_latest_quote() {
+        let mut feed = MarketDataFeed::new();
+        let quote1 = Quote {
+            symbol: "TEST".to_string(),
+            bid: 100.0,
+            ask: 101.0,
+            last: 100.5,
+            volume: 1000,
+            timestamp: 1,
+        };
+        let quote2 = Quote {
+            symbol: "TEST".to_string(),
+            bid: 102.0,
+            ask: 103.0,
+            last: 102.5,
+            volume: 2000,
+            timestamp: 2,
+        };
+        feed.add_quote(quote1);
+        feed.add_quote(quote2);
+        
+        let latest = feed.latest_quote("TEST");
+        assert!(latest.is_some());
+        assert_eq!(latest.unwrap().bid, 102.0);
+        assert_eq!(latest.unwrap().timestamp, 2);
+    }
+
+    #[test]
+    fn test_market_data_feed_latest_quote_not_found() {
+        let feed = MarketDataFeed::new();
+        assert!(feed.latest_quote("NONEXISTENT").is_none());
+    }
+}

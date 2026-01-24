@@ -112,4 +112,65 @@ mod tests {
         let processed = swin.grey_eyes_processing(&image);
         assert_eq!(processed.len(), image.len());
     }
+
+    #[test]
+    fn test_attention_head_new() {
+        let head = AttentionHead::new(0, 64);
+        assert_eq!(head.head_id, 0);
+        assert_eq!(head.dim, 64);
+        assert_eq!(head.weights.len(), 64);
+    }
+
+    #[test]
+    fn test_attention_head_forward() {
+        let head = AttentionHead::new(0, 64);
+        let input = vec![1.0, 2.0, 3.0];
+        let output = head.forward(&input);
+        assert_eq!(output.len(), input.len());
+        assert_eq!(output[0], 0.9);
+        assert_eq!(output[1], 1.8);
+    }
+
+    #[test]
+    fn test_swin_transformer_new() {
+        let swin = SwinTransformer::new(8, 300);
+        assert_eq!(swin.heads.len(), 8);
+        assert_eq!(swin.grey_shades, 300);
+    }
+
+    #[test]
+    fn test_process_with_600_shades() {
+        let swin = SwinTransformer::with_16_heads();
+        let data = vec![0.0, 0.5, 1.0];
+        let shades = swin.process_with_600_shades(&data);
+        assert_eq!(shades.len(), 3);
+        assert_eq!(shades[0], 0);
+        assert_eq!(shades[1], 300);
+        assert_eq!(shades[2], 600);
+    }
+
+    #[test]
+    fn test_process_with_600_shades_negative() {
+        let swin = SwinTransformer::with_16_heads();
+        let data = vec![-0.5, -1.0];
+        let shades = swin.process_with_600_shades(&data);
+        assert_eq!(shades[0], 300);
+        assert_eq!(shades[1], 600);
+    }
+
+    #[test]
+    fn test_grey_eyes_processing_boundary_values() {
+        let swin = SwinTransformer::with_16_heads();
+        let image = vec![0, 255];
+        let processed = swin.grey_eyes_processing(&image);
+        assert_eq!(processed.len(), 2);
+    }
+
+    #[test]
+    fn test_display() {
+        let swin = SwinTransformer::with_16_heads();
+        let display = swin.display();
+        assert!(display.contains("16 Attention Heads"));
+        assert!(display.contains("600 Shades"));
+    }
 }
